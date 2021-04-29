@@ -32,7 +32,6 @@ router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
       lastName: user.lastName,
       emailAddress: user.emailAddress
     });
-    // res.json(user);
 }));
 
 // Route that creates a new user.
@@ -65,7 +64,6 @@ router.get('/courses', asyncHandler(async (req, res) => {
       }
     ]
   }); 
-  //console.log(JSON.stringify(courses, null, 2));
   res.json(courses);
 }));
 

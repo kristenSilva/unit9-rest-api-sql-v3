@@ -1,3 +1,6 @@
+/**
+ * Adapted from the Treehouse Workshop: REST API Authentication with Express
+ */
 'use strict';
 
 const auth = require('basic-auth');
@@ -24,7 +27,7 @@ exports.authenticateUser = async (req, res, next) => {
             //returns true if passwords match
            const authenticated = bcrypt
                 .compareSync(credentials.pass, user.password); 
-            // If the passwords match...
+            // If the passwords match:
             if(authenticated){
                 //adding a property named currentUser to request obj
                 req.currentUser = user; 
@@ -37,7 +40,7 @@ exports.authenticateUser = async (req, res, next) => {
     } else {
         message = `Auth header not found`;
     }
-    // If user authentication failed...
+    // If user authentication failed:
     if(message){
         // Return a response with a 401 Unauthorized HTTP status code.
         console.warn(message);
