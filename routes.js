@@ -71,11 +71,8 @@ router.get('/courses', asyncHandler(async (req, res) => {
 
 // Route that returns corresponding course and User (owner)
 router.get('/courses/:id', asyncHandler(async (req, res) => {
-  const course = await Course.findAll({
+  const course = await Course.findByPk(req.params.id, {
     attributes: ['title', 'description', 'estimatedTime', 'materialsNeeded'],
-    where: {
-      id: req.params.id
-    },
     include: [
       {
         model: User,
@@ -83,6 +80,7 @@ router.get('/courses/:id', asyncHandler(async (req, res) => {
       }
     ]
   });
+  //check if course exists
   if(course){
     res.json(course);
   } else {
