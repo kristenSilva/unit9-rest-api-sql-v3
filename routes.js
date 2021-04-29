@@ -27,17 +27,18 @@ function asyncHandler(cb) {
 // Route that returns a correctly authenticated user
 router.get('/users', authenticateUser, asyncHandler(async (req, res) => {
     const user = req.currentUser;
-    // res.json({
-    //   emailAddress: user.emailAddress
-    // });
-    res.json(user);
+    res.json({
+      firstName: user.firstName,
+      lastName: user.lastName,
+      emailAddress: user.emailAddress
+    });
+    // res.json(user);
 }));
 
 // Route that creates a new user.
 router.post('/users', asyncHandler(async (req, res) => {
   try {
     await User.create(req.body);
-    console.log(req.body);
     res.status(201).location('/').end();
   } catch (error) {
     if (error.name === 'SequelizeValidationError' || error.name === 'SequelizeUniqueConstraintError') {
@@ -56,9 +57,11 @@ router.post('/users', asyncHandler(async (req, res) => {
 // Route that returns a list of all courses including User that owns each course
 router.get('/courses', asyncHandler(async (req, res) => {
   const courses = await Course.findAll({
+    attributes: ['title', 'description', 'estimatedTime', 'materialsNeeded'],
     include: [
       {
-        model: User
+        model: User,
+        attributes: ['firstName', 'lastName', 'emailAddress']
       }
     ]
   }); 
@@ -69,12 +72,14 @@ router.get('/courses', asyncHandler(async (req, res) => {
 // Route that returns corresponding course and User (owner)
 router.get('/courses/:id', asyncHandler(async (req, res) => {
   const course = await Course.findAll({
+    attributes: ['title', 'description', 'estimatedTime', 'materialsNeeded'],
     where: {
       id: req.params.id
     },
     include: [
       {
-        model: User
+        model: User,
+        attributes: ['firstName', 'lastName', 'emailAddress']
       }
     ]
   });
@@ -107,8 +112,14 @@ router.put('/courses/:id', authenticateUser, asyncHandler(async (req, res) => {
     const course = await Course.findByPk(req.params.id);
     //check if course exists
     if(course) {
-      await course.update(req.body);
-      res.status(204).end();
+      //check if course owner (user) matches authenticated user
+      const user = req.currentUser;
+      if(user.id === course.userId){
+        await course.update(req.body);
+        res.status(204).end();
+      } else {
+        res.status(403).json({ message: 'Incorrect User' });
+      }
     } else {
       res.status(404).json({ message: 'Course Not Found' });
     }
@@ -128,8 +139,14 @@ router.delete('/courses/:id', authenticateUser, asyncHandler(async (req, res) =>
   const course = await Course.findByPk(req.params.id);
   //check if course exists
   if(course) {
-    await course.destroy();
-    res.status(204).end();
+    //check course owner
+    const user = req.currentUser;
+    if(user.id === course.userId){
+      await course.destroy();
+      res.status(204).end();
+    } else {
+      res.status(403).json({ message: 'Incorrect User' });      
+    }
   } else {
     res.status(404).json({message: 'Course Not Found'});
   }
